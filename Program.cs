@@ -1,17 +1,60 @@
+using System;
+using System.Linq;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
-void drawHist(Image img)
+float[] inverse(float[] img)
 {
+    for (int i = 0; i < img.Length; i++)
+        img[i] = 1f - img[i];
+    return img;
+}
 
+Image drawHist(int[] hist)
+{
+    var bmp = new Bitmap(512, 256);
+    var g = Graphics.FromImage(bmp);
+    float margin = 16;
+
+    int max = hist.Max();
+    float barlen = (bmp.Width - 2 * margin) / hist.Length;
+    float r = (bmp.Height - 2 * margin) / max;
+
+    for (int i = 0; i < hist.Length; i++)
+    {
+        float bar = hist[i] * r;
+        g.FillRectangle(Brushes.Black, 
+            margin + i * barlen,
+            bmp.Height - margin - bar, 
+            barlen,
+            bar);
+        g.DrawRectangle(Pens.DarkBlue, 
+            margin + i * barlen,
+            bmp.Height - margin - bar, 
+            barlen,
+            bar);
+    }
+
+    return bmp;
+}
+
+int[] hist(float[] img, float db = 0.05f)
+{
+    int histogramLen = (int)(1 / db) + 1;
+    int[] histogram = new int[histogramLen];
+
+    foreach (var pixel in img)
+        histogram[(int)(pixel / db)]++;
+    
+    return histogram;
 }
 
 float[] grayScale(float[] img)
 {
     float[] result = new float[img.Length / 3];
-
+    
     for (int i = 0, j = 0; i < img.Length; i += 3, j++)
     {
         result[j] = 0.1f * img[i] + 
@@ -65,8 +108,19 @@ byte[] bytes(Image img)
         ImageLockMode.ReadOnly,
         PixelFormat.Format24bppRgb);
     
-    byte[] byteArray = new byte[data.Stride * data.Height];
-    Marshal.Copy(data.Scan0, byteArray, 0, byteArray.Length);
+    byte[] byteArray = new byte[3 * data.Width * data.Height];
+
+    byte[] temp = new byte[data.Stride * data.Height];
+    Marshal.Copy(data.Scan0, temp, 0, temp.Length);
+
+    for (int j = 0; j < data.Height; j++)
+    {
+        for (int i = 0; i < 3 * data.Width; i++)
+        {
+            byteArray[i + j * 3 * data.Width] =
+                temp[i + j * data.Stride];
+        }
+    }
 
     bmp.UnlockBits(data);
 
@@ -81,7 +135,18 @@ Image img(Image img, byte[] bytes)
         ImageLockMode.ReadOnly,
         PixelFormat.Format24bppRgb);
     
-    Marshal.Copy(bytes, 0, data.Scan0, bytes.Length);
+    byte[] temp = new byte[data.Stride * data.Height];
+    
+    for (int j = 0; j < data.Height; j++)
+    {
+        for (int i = 0; i < 3 * data.Width; i++)
+        {
+            temp[i + j * data.Stride] =
+                bytes[i + j * 3 * data.Width];
+        }
+    }
+    
+    Marshal.Copy(temp, 0, data.Scan0, temp.Length);
 
     bmp.UnlockBits(data);
     return img;
@@ -117,11 +182,13 @@ void show(Image img)
     Application.Run(form);
 }
 
-var planta = Bitmap.FromFile("a.jpg");
+var planta = Bitmap.FromFile("img/antiga2.jpg");
 var bytesPlanta = bytes(planta);
 var floatPlanta = continuous(bytesPlanta);
-var grayPlanta = grayScale(floatPlanta);
-var grayPlantaBytes = discretGray(grayPlanta);
-img(planta, grayPlantaBytes);
+var grayPlanta = inverse(grayScale(floatPlanta));
 
+img(planta, discretGray(grayPlanta));
+
+var histogram = hist(grayPlanta);
+var histogramImg = drawHist(histogram);
 show(planta);
