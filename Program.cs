@@ -12,6 +12,22 @@ float[] inverse(float[] img)
     return img;
 }
 
+void showHist(float[] img, float db = 0.05f)
+{
+    var histogram = hist(img, db);
+    var histImg = drawHist(histogram);
+    show(histImg);
+}
+
+float[] open(string path)
+{
+    var bmp = Bitmap.FromFile(path);
+    var byteArray = bytes(bmp);
+    var dataCont = continuous(byteArray);
+    var gray = grayScale(dataCont);
+    return gray;
+}
+
 Image drawHist(int[] hist)
 {
     var bmp = new Bitmap(512, 256);
@@ -182,13 +198,5 @@ void show(Image img)
     Application.Run(form);
 }
 
-var planta = Bitmap.FromFile("img/antiga2.jpg");
-var bytesPlanta = bytes(planta);
-var floatPlanta = continuous(bytesPlanta);
-var grayPlanta = inverse(grayScale(floatPlanta));
-
-img(planta, discretGray(grayPlanta));
-
-var histogram = hist(grayPlanta);
-var histogramImg = drawHist(histogram);
-show(planta);
+var image = open("img/antiga2.jpg");
+showHist(image);
