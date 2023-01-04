@@ -5,6 +5,72 @@ using System.Windows.Forms;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
+float[] equalization(float[] img)
+{
+    var min = img.Min();
+    var max = img.Max();
+    var r = 1 / (max - min);
+    
+    for (int i = 0; i < img.Length; i++)
+        img[i] = (img[i] - min) * r;
+    
+    return img;
+}
+
+float[] binarizar(float[] img, float trashold)
+{
+    for (int i = 0; i < img.Length; i++)
+    {
+        img[i] = (img[i] > trashold) ? 1 : 0;
+    }
+    return img;
+}
+
+float[] equalizationThreshold(float[] img, float threshold = 0.05f, float db = 0.05f)
+{
+    int[] histogram = hist(img, db);
+
+    int dropCount = (int)(img.Length * threshold);
+    
+    float min = 0;
+    int droped = 0;
+    for (int i = 0; i < histogram.Length; i++)
+    {
+        droped += histogram[i];
+        if (droped > dropCount)
+        {
+            min = i * db;
+            break;
+        }
+    }
+
+    float max = 0;
+    droped = 0;
+    for (int i = histogram.Length - 1; i > -1; i--)
+    {
+        droped += histogram[i];
+        if (droped > dropCount)
+        {
+            max = i * db;
+            break;
+        }
+    }
+
+    var r = 1 / (max - min);
+    
+    for (int i = 0; i < img.Length; i++)
+    {
+        float newValue = (img[i] - min) * r;
+        if (newValue > 1f)
+            newValue = 1f;
+        else if (newValue < 0f)
+            newValue = 0f;
+        img[i] = newValue;
+    }
+    
+    return img;
+}
+
 float[] inverse(float[] img)
 {
     for (int i = 0; i < img.Length; i++)
@@ -16,16 +82,16 @@ void showHist(float[] img, float db = 0.05f)
 {
     var histogram = hist(img, db);
     var histImg = drawHist(histogram);
-    show(histImg);
+    showBmp(histImg);
 }
 
-float[] open(string path)
+(Bitmap, float[]) open(string path)
 {
-    var bmp = Bitmap.FromFile(path);
+    var bmp = Bitmap.FromFile(path) as Bitmap;
     var byteArray = bytes(bmp);
     var dataCont = continuous(byteArray);
     var gray = grayScale(dataCont);
-    return gray;
+    return (bmp, gray);
 }
 
 Image drawHist(int[] hist)
@@ -54,6 +120,13 @@ Image drawHist(int[] hist)
     }
 
     return bmp;
+}
+
+void show(Bitmap bmp, float[] gray)
+{
+    var bytes = discretGray(gray);
+    var image = img(bmp, bytes);
+    showBmp(bmp);
 }
 
 int[] hist(float[] img, float db = 0.05f)
@@ -168,7 +241,7 @@ Image img(Image img, byte[] bytes)
     return img;
 }
 
-void show(Image img)
+void showBmp(Image img)
 {
     ApplicationConfiguration.Initialize();
 
@@ -198,5 +271,7 @@ void show(Image img)
     Application.Run(form);
 }
 
-var image = open("img/antiga2.jpg");
-showHist(image);
+(Bitmap bmp, float[] image) = open("img/facil.jpeg");
+binarizar(image, 0.7f);
+// showHist(image);
+show(bmp, image);
