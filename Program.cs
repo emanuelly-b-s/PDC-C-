@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Drawing;
+using System.Numerics;
 using System.Windows.Forms;
 using System.Drawing.Imaging;
 using System.Collections.Generic;
@@ -53,7 +54,61 @@ using System.Runtime.InteropServices;
 //     return (t.bmp, result);
 // }
 
-(Bitmap bmp, float[] img) affine((Bitmap bmp, float[] img) t, params double[] p)
+float[] rotation(float degree)
+{
+    float radian = degree / 180 * MathF.PI;
+    float cos = MathF.Cos(radian);
+    float sin = MathF.Sin(radian);
+    return new float[]
+    {
+        cos, -sin, 0,
+        sin,  cos, 0,
+          0,    0, 1
+    };
+}
+
+float[] translate(float dx, float dy)
+{
+    return new float[]
+    {
+        1, 0, dx,
+        0, 1, dy,
+        0, 0, 1
+    };
+}
+
+float[] translateFromSize(float dx, float dy,
+    (Bitmap bmp, float[] img) t)
+{
+    return new float[]
+    {
+        1, 0, dx * t.bmp.Width,
+        0, 1, dy * t.bmp.Height,
+        0, 0, 1
+    };
+}
+
+float[] scale(float dx, float dy)
+{
+    return new float[]
+    {
+        dx, 0, 0,
+        0, dy, 0,
+        0, 0, 1
+    };
+}
+
+float[] shear(float cx, float cy)
+{
+    return new float[]
+    {
+        1, cx, 0,
+        cy, 1, 0,
+        0, 0, 1
+    };
+}
+
+(Bitmap bmp, float[] img) affine((Bitmap bmp, float[] img) t, params float[] p)
 {
     var _img = t.img;
     var wid = t.bmp.Width;
@@ -67,12 +122,12 @@ using System.Runtime.InteropServices;
             int index = i + j * wid;
             var newX = (int)(p[0] * i + p[1] * j + p[2]);
             var newY = (int)(p[3] * i + p[4] * j + p[5]);
-            var newIndex = (int) (newX + newY * wid);
+            var newIndex = (int)(newX + newY * wid);
 
             if (newX >= wid || newX < 0 || newY >= hei || newY < 0)
                 continue;
 
-            result[newIndex] =  _img[index];
+            result[newIndex] = _img[index];
         }
     }
     var Imgbytes = discretGray(result);
@@ -634,10 +689,10 @@ void showRects((Bitmap bmp, float[] img) t, List<Rectangle> list)
 var image = open("img/shuregui.png");
 
 var ang = 45;
-double radianos = ang * (Math.PI/180);
+float radianos = ang * (MathF.PI / 180);
 
-show(affine(image, 
-            0.6f, -0.8f, 192f, 
+show(affine(image,
+            0.6f, -0.8f, 192f,
             0.8f, 0.6f, -64f));
 
 // otsu(image);
