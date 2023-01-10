@@ -6,54 +6,106 @@ using System.Drawing.Imaging;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-(Bitmap bmp, float[] img) sobel((Bitmap bmp, float[] img) t)
+// (Bitmap bmp, float[] img) sobel((Bitmap bmp, float[] img) t)
+// {
+
+//     var _img = t.img;
+//     var wid = t.bmp.Width;
+//     var hei = t.bmp.Height;
+
+//     float[] result = new float[_img.Length];
+//     float[] result2 = new float[_img.Length];
+
+//     for (int i = 1; i < wid - 1; i++)
+//     {
+//         for (int j = 1; j < hei - 1; j++)
+//         {
+//             int index = i + j * wid;
+//             var op = _img[index] + 2 * _img[index + 1] + _img[index + 2];
+
+//             result2[i + j * wid] = op;
+
+//         }
+//     }
+
+//     for (int j = 1; j < hei - 1; j++)
+//     {
+//         int index = 1 + j * wid;
+//         float sum = result2[index - 1] + result2[index];
+//         for (int i = 1; i < wid - 1; i++)
+//         {
+//             index = i + j * wid;
+//             var newSum = result2[index] + result2[index + 1];
+//             result[index] = sum - newSum;
+//             sum = newSum;
+
+//             if (result[index]  < 0)
+//                 result[index]  = 0f;
+//             else if (result[index]  > 1)
+//                 result[index]  = 1f;
+
+//         }
+//     }
+
+//     var Imgbytes = discretGray(result);
+//     img(t.bmp, Imgbytes);
+
+//     return (t.bmp, result);
+// }
+
+(Bitmap bmp, float[] img) sobel((Bitmap bmp, float[] img) t,
+    bool dir = true)
 {
-
-    var _img = t.img;
-    var wid = t.bmp.Width;
-    var hei = t.bmp.Height;
-
-    float[] result = new float[_img.Length];
-    float[] result2 = new float[_img.Length];
+    var im = t.img;
+    float[] tempo = new float[im.Length];
+    float[] final = new float[im.Length];
+    int wid = t.bmp.Width;
+    int hei = t.bmp.Height;
 
     for (int i = 1; i < wid - 1; i++)
     {
+        float sum = 
+            im[i + 0 * wid] + 
+            im[i + 1 * wid] + 
+            im[i + 2 * wid];
         for (int j = 1; j < hei - 1; j++)
         {
             int index = i + j * wid;
-            var op = _img[index] + 2 * _img[index + 1] + _img[index + 2];
+            tempo[index] = im[index] + sum;
 
-            result2[i + j * wid] = op;
-
+            sum -= im[index - 1];
+            sum += im[index + 1];
         }
     }
-
+    
     for (int j = 1; j < hei - 1; j++)
     {
-        int index = 1 + j * wid;
-        float sum = result2[index - 1] + result2[index];
+        float seq = 
+            im[0 + j * wid] + 
+            im[1 + j * wid];
         for (int i = 1; i < wid - 1; i++)
         {
-            index = i + j * wid;
-            var newSum = result2[index] + result2[index + 1];
-            result[index] = sum - newSum;
-            sum = newSum;
+            float nextSeq = 
+                im[i + j * wid] +
+                im[i + 1 + j * wid];
 
-            if (result[index]  < 0)
-                result[index]  = 0f;
-            else if (result[index]  > 1)
-                result[index]  = 1f;
+            int index = i + j * wid;
+            float value = dir ? seq - nextSeq : nextSeq - seq;
+            if (value > 1f)
+                value = 1f;
+            else if (value < 0f)
+                value = 0f;
+            final[index] = value;
 
+            seq = nextSeq;
         }
     }
 
-    var Imgbytes = discretGray(result);
+    var Imgbytes = discretGray(final);
     img(t.bmp, Imgbytes);
 
-    return (t.bmp, result);
+    return (t.bmp, final);
 }
-
-
 
 
 (Bitmap bmp, float[] img) conv(
@@ -553,7 +605,7 @@ void showRects((Bitmap bmp, float[] img) t, List<Rectangle> list)
 
 var image = open("img/shuregui.png");
 
-show(sobel(image));
+show(sobel(image, false));
 
 // otsu(image);
 // var rects = segmentation(image);
