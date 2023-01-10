@@ -53,6 +53,36 @@ using System.Runtime.InteropServices;
 //     return (t.bmp, result);
 // }
 
+(Bitmap bmp, float[] img) affine((Bitmap bmp, float[] img) t, params float[] p)
+{
+    var _img = t.img;
+    var wid = t.bmp.Width;
+    var hei = t.bmp.Height;
+    float[] result = new float[_img.Length];
+
+    for (int i = 0; i < hei; i++)
+    {
+        for (int j = 0; j < wid; j++)
+        {
+            int index = i + j * wid;
+            var newX = (p[0] * i) + (p[1] * j) + p[2];
+            var newY = (p[3] * i) + (p[4] * j) + p[5];
+            var newIndex = newX + newY * wid;
+
+            if (newIndex < 0 || newIndex > _img.Length - 1)
+            {
+                continue;
+            }
+
+            result[(int)newIndex] =  _img[index];
+        }
+    }
+    var Imgbytes = discretGray(result);
+    img(t.bmp, Imgbytes);
+    return (t.bmp, result);
+}
+
+
 (Bitmap bmp, float[] img) sobel((Bitmap bmp, float[] img) t,
     bool dir = true)
 {
@@ -64,9 +94,9 @@ using System.Runtime.InteropServices;
 
     for (int i = 1; i < wid - 1; i++)
     {
-        float sum = 
-            im[i + 0 * wid] + 
-            im[i + 1 * wid] + 
+        float sum =
+            im[i + 0 * wid] +
+            im[i + 1 * wid] +
             im[i + 2 * wid];
         for (int j = 1; j < hei - 1; j++)
         {
@@ -77,15 +107,15 @@ using System.Runtime.InteropServices;
             sum += im[index + 1];
         }
     }
-    
+
     for (int j = 1; j < hei - 1; j++)
     {
-        float seq = 
-            im[0 + j * wid] + 
+        float seq =
+            im[0 + j * wid] +
             im[1 + j * wid];
         for (int i = 1; i < wid - 1; i++)
         {
-            float nextSeq = 
+            float nextSeq =
                 im[i + j * wid] +
                 im[i + 1 + j * wid];
 
@@ -603,9 +633,9 @@ void showRects((Bitmap bmp, float[] img) t, List<Rectangle> list)
     showBmp(t.bmp);
 }
 
-var image = open("img/shuregui.png");
+var image = open("img/circle.png");
 
-show(sobel(image, false));
+show(affine(image, 1f, 0.5f, 0f,0f, 1f, 0f));
 
 // otsu(image);
 // var rects = segmentation(image);
