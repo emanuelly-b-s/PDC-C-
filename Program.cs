@@ -65,16 +65,14 @@ using System.Runtime.InteropServices;
         for (int j = 0; j < wid; j++)
         {
             int index = i + j * wid;
-            var newX = (p[0] * i) + (p[1] * j) + p[2];
-            var newY = (p[3] * i) + (p[4] * j) + p[5];
-            var newIndex = newX + newY * wid;
+            var newX = (int)(p[0] * i + p[1] * j + p[2]);
+            var newY = (int)(p[3] * i + p[4] * j + p[5]);
+            var newIndex = (int) (newX + newY * wid);
 
-            if (newIndex < 0 || newIndex > _img.Length - 1)
-            {
+            if (newX >= wid || newX < 0 || newY >= hei || newY < 0)
                 continue;
-            }
 
-            result[(int)newIndex] =  _img[index];
+            result[newIndex] =  _img[index];
         }
     }
     var Imgbytes = discretGray(result);
@@ -635,7 +633,7 @@ void showRects((Bitmap bmp, float[] img) t, List<Rectangle> list)
 
 var image = open("img/circle.png");
 
-show(affine(image, 1f, 0.5f, 0f,0f, 1f, 0f));
+show(affine(image, 0.6f, -0.8f, 0f, 0.8f, 0.6f, 0f));
 
 // otsu(image);
 // var rects = segmentation(image);
