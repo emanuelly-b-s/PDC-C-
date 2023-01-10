@@ -53,7 +53,7 @@ using System.Runtime.InteropServices;
 //     return (t.bmp, result);
 // }
 
-(Bitmap bmp, float[] img) affine((Bitmap bmp, float[] img) t, params float[] p)
+(Bitmap bmp, float[] img) affine((Bitmap bmp, float[] img) t, params double[] p)
 {
     var _img = t.img;
     var wid = t.bmp.Width;
@@ -631,9 +631,12 @@ void showRects((Bitmap bmp, float[] img) t, List<Rectangle> list)
     showBmp(t.bmp);
 }
 
-var image = open("img/circle.png");
+var image = open("img/shuregui.png");
 
-show(affine(image, 0.6f, -0.8f, 0f, 0.8f, 0.6f, 0f));
+var ang = 30;
+double radianos = ang * (Math.PI/180);
+
+show(affine(image, Math.Cos(radianos), -Math.Sin(radianos), 0, Math.Sin(radianos), Math.Cos(radianos), 0));
 
 // otsu(image);
 // var rects = segmentation(image);
