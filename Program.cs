@@ -633,10 +633,12 @@ void showRects((Bitmap bmp, float[] img) t, List<Rectangle> list)
 
 var image = open("img/shuregui.png");
 
-var ang = 30;
+var ang = 45;
 double radianos = ang * (Math.PI/180);
 
-show(affine(image, Math.Cos(radianos), -Math.Sin(radianos), 0, Math.Sin(radianos), Math.Cos(radianos), 0));
+show(affine(image, 
+            0.6f, -0.8f, 192f, 
+            0.8f, 0.6f, -64f));
 
 // otsu(image);
 // var rects = segmentation(image);
