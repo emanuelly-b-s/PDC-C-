@@ -92,43 +92,54 @@ using System.Runtime.InteropServices;
     return (t.bmp, imgRed);
 }
 
-(Bitmap bmp, float[] img) bilinear2((Bitmap bmp, float[] img) t)
+(Bitmap bmp, float[] img) interpolacao((Bitmap bmp, float[] img) t)
 {
     float[] _img = t.img;
-    float[] imgRed = new float[_img.Length];
+    float[] result = new float[_img.Length];
     int wid = t.bmp.Width;
-    int hei = t.bmp.Height; //altura
+    int hei = t.bmp.Height;
 
     for (int i = 0; i < hei; i++)
     {
         for (int j = 0; j < wid; j++)
         {
             int index = j + i * wid;
-            if (_img[index] > 0f || 
-                j == 0 || i == 0 || 
-                j == wid - 1 || i == hei - 1)
-            {
-                imgRed[index] = _img[index];
+            if (_img[index] != 0)
                 continue;
+
+            int index_diag1 = (j-1) +( i-1) * wid;
+            int index_diag2 = (j+1) +( i+1) * wid;
+            while(_img[index_diag1] == 0 && _img[index_diag2] ==0)
+            {
+                
+                
+                
             }
 
-            var newX = j - 1 + (i - 1) * wid;
-            var newY = j + 1 + (i - 1) * wid;
-            float newIndex = (_img[newX] + _img[newY]) / 2;
+            
+            // if(_img[index_diag1] != 0 && _img[index_diag2] != 0)
+                // {
+                //     float a = _img[(j-1) +( i-1) * wid];
+                //     float b = _img[(j+1) +( i-1) * wid];
+                
+                // }
+                
+            float xAB = x*b + (x-1)*a;
 
-            var newX2 = j - 1 + (i + 1) * wid;
-            var newY2 = j + 1 + (i + 1) * wid;
-            float b = (_img[newX2] + _img[newY2]) / 2;
+           float c = _img[(j-1) +( i+1) * wid];
+                    float d = _img[(j+1) +( i+1) * wid];
+            float xCD = x*d + (x-1)*a;
 
-            imgRed[index] = (newIndex + b) / 2;
+
         }
     }
 
-    var imgBytes = discretGray(imgRed);
-    img(t.bmp, imgBytes);
+   var Imgbytes = discretGray(result);
+    img(t.bmp, Imgbytes);
 
-    return (t.bmp, imgRed);
+    return (t.bmp, result);
 }
+
 
 (Bitmap bmp, float[] img) resize((Bitmap bmp, float[] img) t, 
     float newWid, float newHei)
