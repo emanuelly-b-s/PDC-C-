@@ -54,6 +54,48 @@ using System.Runtime.InteropServices;
 //     return (t.bmp, imgRed);
 // }
 
+
+
+(Bitmap bmp, float[] img) hough((Bitmap bmp, float[] img) org)
+{
+    int wid = org.bmp.Width;
+    int hei = org.bmp.Height;
+    float[] tImg = new float[1000 * 1000];
+    Bitmap bmpTranformation = new Bitmap(1000, 1000);
+    var oImg = org.img;
+
+    for (int j = 0; j < hei; j++)
+    {
+        for (int i = 0; i < wid; i++)
+        {
+            int index = i + j * wid;
+            if (oImg[index] == 0f)
+                continue;
+            // y = ax + b
+            // b = -xa + y
+            float a = -i;
+            float b = j;
+
+            for (int x = 0; x < 1000; x++)
+            {
+                int y = (int)(a * (x / 250f - 2f) + b);
+                if (y < 0 || y >= 1000)
+                    continue;
+
+                tImg[x + y * 1000] += 0.01f;
+                if (tImg[x + y * 1000] > 1f)
+                    tImg[x + y * 1000] = 1f;
+            }
+        }
+    }
+
+    var tBytes = discretGray(tImg);
+    var image = img(bmpTranformation, tBytes);
+    return (image as Bitmap, tImg);
+}
+
+
+
 (Bitmap bmp, float[] img) bilinear((Bitmap bmp, float[] img) t)
 {
     float[] _img = t.img;
