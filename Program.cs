@@ -66,8 +66,8 @@ using System.Runtime.InteropServices;
         for (int j = 0; j < wid; j++)
         {
             int index = j + i * wid;
-            if (_img[index] > 0f || 
-                j == 0 || i == 0 || 
+            if (_img[index] > 0f ||
+                j == 0 || i == 0 ||
                 j == wid - 1 || i == hei - 1)
             {
                 imgRed[index] = _img[index];
@@ -105,43 +105,63 @@ using System.Runtime.InteropServices;
         {
             int index = j + i * wid;
             if (_img[index] != 0)
-                continue;
-
-            int index_diag1 = (j-1) +( i-1) * wid;
-            int index_diag2 = (j+1) +( i+1) * wid;
-            while(_img[index_diag1] == 0 && _img[index_diag2] ==0)
             {
-                
-                
-                
+                result[index] = _img[index];
+                continue;
             }
 
-            
-            // if(_img[index_diag1] != 0 && _img[index_diag2] != 0)
-                // {
-                //     float a = _img[(j-1) +( i-1) * wid];
-                //     float b = _img[(j+1) +( i-1) * wid];
-                
-                // }
-                
-            float xAB = x*b + (x-1)*a;
+            int altura = 1;
+            int largura = 1;
 
-           float c = _img[(j-1) +( i+1) * wid];
-                    float d = _img[(j+1) +( i+1) * wid];
-            float xCD = x*d + (x-1)*a;
+            if (j - largura < 0 || j + largura >= wid ||
+               i - altura < 0 || i + altura >= hei)
+                continue;
 
+            int a = (j - largura) + (i - altura) * wid;
+            int b = (j + largura) + (i - altura) * wid;
+            int c = (j - largura) + (i + altura) * wid;
+            int d = (j + largura) + (i + altura) * wid;
 
+            int count = 0;
+            while (_img[a] == 0 || _img[b] == 0 || _img[c] == 0 || _img[d] == 0)
+            {
+                count++;
+                if (count % 2 ==0)
+                    altura++;
+                else largura++;
+
+                a = (j - largura) + (i - altura) * wid;
+                b = (j + largura) + (i - altura) * wid;
+                c = (j - largura) + (i + altura) * wid;
+                d = (j + largura) + (i + altura) * wid;
+
+                if (j - largura < 0 || j + largura >= wid ||
+                    i - altura < 0 || i + altura >= hei)
+                    break;
+            }
+
+            if (j - largura < 0 || j + largura >= wid ||
+                i - altura < 0 || i + altura >= hei)
+                continue;
+
+            if (_img[a] != 0 && _img[b] != 0 && _img[c] != 0 && _img[d] != 0)
+            {
+                float CD = (_img[c] + _img[d]) / 2;
+                float AB = (_img[a] + _img[b]) / 2;
+
+                result[index] = (AB + CD) / 2;
+            }
         }
     }
 
-   var Imgbytes = discretGray(result);
+    var Imgbytes = discretGray(result);
     img(t.bmp, Imgbytes);
 
     return (t.bmp, result);
 }
 
 
-(Bitmap bmp, float[] img) resize((Bitmap bmp, float[] img) t, 
+(Bitmap bmp, float[] img) resize((Bitmap bmp, float[] img) t,
     float newWid, float newHei)
 {
     int wid = t.bmp.Width;
@@ -166,10 +186,10 @@ using System.Runtime.InteropServices;
     var imgRed = img(imgRedirecionada, imgCinza) as Bitmap;
     var result = (imgRed, tamNewImg);
 
-    result = 
+    result =
         affine(result,
             scale(newWid, newHei));
-    
+
     return result;
 }
 
@@ -179,7 +199,7 @@ Matrix4x4 mat(params float[] arr)
         arr[0], arr[1], arr[2], 0,
         arr[3], arr[4], arr[5], 0,
         arr[6], arr[7], arr[8], 0,
-             0,      0,      0, 1
+             0, 0, 0, 1
     );
 }
 
@@ -190,8 +210,8 @@ Matrix4x4 rotation(float degree)
     float sin = MathF.Sin(radian);
     return mat(
         cos, -sin, 0,
-        sin,  cos, 0,
-          0,    0, 1
+        sin, cos, 0,
+          0, 0, 1
     );
 }
 
@@ -256,12 +276,12 @@ Matrix4x4 shear(float cx, float cy)
             x = (int)(p[0] * i + p[1] * j + p[2]);
             y = (int)(p[3] * i + p[4] * j + p[5]);
 
-            if(x < 0 || x >= wid || y < 0 || y >= wid)
+            if (x < 0 || x >= wid || y < 0 || y >= wid)
                 continue;
             else
             {
                 index = (int)(x + y * wid);
-                nova[index] = _img[i+j * wid];
+                nova[index] = _img[i + j * wid];
             }
         }
     }
@@ -825,11 +845,14 @@ void showRects((Bitmap bmp, float[] img) t, List<Rectangle> list)
 
 
 var image = open("img/shuregui.png");
-image = resize(image, 1.25f, 1f);
-image = bilinear(image);
-image = resize(image, 1f, 1.25f);
-image = bilinear(image);
+image = resize(image, 2f, 2f);
+// image = bilinear(image);
+// image = resize(image, 1f, 1.25f);
+// image = bilinear(image);
+image = interpolacao(image);
+
 show(image);
+image.bmp.Save("manu kkk.png");
 
 // otsu(image);
 // var rects = segmentation(image);
