@@ -55,7 +55,6 @@ using System.Runtime.InteropServices;
 // }
 
 
-
 (Bitmap bmp, float[] img) hough((Bitmap bmp, float[] img) org)
 {
     int wid = org.bmp.Width;
@@ -93,8 +92,6 @@ using System.Runtime.InteropServices;
     var image = img(bmpTranformation, tBytes);
     return (image as Bitmap, tImg);
 }
-
-
 
 (Bitmap bmp, float[] img) bilinear((Bitmap bmp, float[] img) t)
 {
@@ -201,7 +198,6 @@ using System.Runtime.InteropServices;
 
     return (t.bmp, result);
 }
-
 
 (Bitmap bmp, float[] img) resize((Bitmap bmp, float[] img) t,
     float newWid, float newHei)
@@ -883,6 +879,49 @@ void showRects((Bitmap bmp, float[] img) t, List<Rectangle> list)
         g.DrawRectangle(Pens.Red, rect);
 
     showBmp(t.bmp);
+}
+
+
+
+byte[] kmeans((Bitmap bmp, float[] img) t)
+{
+    int N = t.bmp.Width * t.bmp.Height;
+    byte[] byteList = discret(t.img);
+
+    RandomRGB[] pallet = new RandomRGB[255];
+    for (int i = 0; i < 255; i++)
+        pallet[i] = new RandomRGB();
+
+
+    for (int i = 0; i < byteList.Length; i += 3)
+    {
+        var actualRGB = new RGB(byteList[i], byteList[i + 1], byteList[i + 2]);
+        pallet
+            .MinBy(point =>
+                actualRGB.Distance(point) < actualRGB.Distance(point))
+                .Cluster.Add(actualRGB);
+    }
+
+    for (int i = 0; i < pallet.Length; i++)
+    {
+        var r = 0;
+        var g = 0;
+        var b = 0;
+
+        var clusterSize = pallet[i].Cluster.Count();
+
+        for(int j = 0; j < clusterSize; j++)
+        {
+            r += pallet[i].Cluster[j].R;
+            g += pallet[i].Cluster[j].G;
+            b += pallet[i].Cluster[j].B;
+        }
+
+        pallet[i].R = (byte) (r / clusterSize); 
+        pallet[i].G = (byte) (g / clusterSize); 
+        pallet[i].B = (byte) (b / clusterSize); 
+    }
+
 }
 
 
